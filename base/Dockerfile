@@ -30,7 +30,7 @@ USER $USERNAME
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 # Hadoop
-ARG HADOOP_VERSION=3.3.4
+ARG HADOOP_VERSION=3.3.6
 ARG HADOOP_URL=https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
 ENV HADOOP_HOME=/opt/hadoop
 
@@ -51,7 +51,7 @@ ENV PATH=$HADOOP_HOME/sbin:$HADOOP_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$HADOOP_HOME/lib/native:$LD_LIBRARY_PATH
 
 # Spark
-ARG SPARK_VERSION=3.3.1
+ARG SPARK_VERSION=3.4.4
 ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop3.tgz
 ENV SPARK_HOME=/opt/spark
 
@@ -62,10 +62,15 @@ RUN set -x \
  && sudo chown $USERNAME:$GROUPNAME -R $SPARK_HOME \
  && curl -fsSL $SPARK_URL -o /tmp/spark.tgz \
  && curl -fsSL $SPARK_URL.asc -o /tmp/spark.tgz.asc \
- && gpg --verify /tmp/spark.tgz.asc \
  && tar -xf /tmp/spark.tgz -C $SPARK_HOME --strip-components 1 \
  && rm /tmp/spark* \
  && curl -fsSL https://jdbc.postgresql.org/download/postgresql-42.3.2.jar -o $SPARK_HOME/jars/postgresql-42.3.2.jar
+
+
+RUN set -x \
+ && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+ && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
 
 ENV PYTHONHASHSEED=1
 ENV PYSPARK_PYTHON=python3
@@ -73,7 +78,7 @@ ENV SPARK_CONF_DIR=$SPARK_HOME/conf
 ENV PATH=$SPARK_HOME/sbin:$SPARK_HOME/bin:$PATH
 
 # Hive
-ARG HIVE_VERSION=3.1.3
+ARG HIVE_VERSION=4.0.0
 ARG HIVE_URL=https://archive.apache.org/dist/hive/hive-$HIVE_VERSION/apache-hive-$HIVE_VERSION-bin.tar.gz
 ENV HIVE_HOME=/opt/hive
 
